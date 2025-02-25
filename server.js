@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import http from 'http'
 import { WebSocketServer } from 'ws'
-import { setupWSConnection } from 'y-websocket/bin/utils.js'
+import { WebsocketProvider } from 'y-websocket'
 
 const PORT = process.env.PORT || 1234
 
@@ -10,7 +10,9 @@ const wss = new WebSocketServer({ server })
 
 wss.on('connection', (ws, req) => {
   console.log('✅ 클라이언트 연결됨')
-  setupWSConnection(ws, req)
+
+  // y-websocket을 WebSocketProvider로 설정
+  new WebsocketProvider('ws://localhost:' + PORT, 'my-room', ws)
 })
 
 server.listen(PORT, () => {
