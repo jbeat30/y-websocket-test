@@ -3,7 +3,7 @@ import { Buffer } from 'buffer'
 
 const connect = () => {
   const reconnectInterval = 5000  // 재연결 간격 (5초)
-  const wsURL = 'ws://localhost:8080'  // wss://y-websocket-test-6g6q.onrender.com
+  const wsURL = 'ws://localhost:8080'  // wss://y-websocket-test-ik5k.onrender.com
   const ws = new WebSocket(wsURL)
 
   ws.on('open', () => {
