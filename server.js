@@ -4,7 +4,23 @@ import { WebSocketServer } from 'ws'
 import { setupWSConnection } from 'y-websocket/bin/utils'
 
 const PORT = process.env.PORT || 8080
-const server = http.createServer()
+const server = http.createServer((req, res) => {
+  // CORS 헤더 설정
+  res.setHeader('Access-Control-Allow-Origin', '*') // 모든 출처 허용
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS') // 허용할 HTTP 메서드 설정
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization') // 허용할 헤더 설정
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200)
+    res.end()
+    return
+  }
+
+  // 기본 HTTP 요청 처리
+  res.writeHead(200)
+  res.end()
+})
+
 const wss = new WebSocketServer({ server, path: '/' })
 
 wss.on('connection', (ws, req) => {
