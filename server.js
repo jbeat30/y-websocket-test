@@ -28,26 +28,6 @@ wss.on('connection', (ws, req) => {
 
   // Yjs 문서를 WebSocket에 연결
   setupWSConnection(ws, req);
-
-  ws.on('message', (message) => {
-    try {
-      const parsedMessage = JSON.parse(message);
-      switch (parsedMessage.type) {
-        case 'connect':
-          console.log('👋 클라이언트가 접속을 요청함:', parsedMessage.message.toString());
-          ws.send(JSON.stringify({ type: 'connect', message: '접속 성공!' }));
-          break;
-        case 'ping':
-          console.log('🏓 핑 메시지 수신', parsedMessage.message.toString());
-          ws.send(JSON.stringify({ type: 'pong', message: 'pong 유지 메시지!' }));
-          break;
-        default:
-          console.log('⚠️ 알 수 없는 메시지 타입:', parsedMessage.type);
-      }
-    } catch (error) {
-      console.error('⚠️ 메시지 파싱 오류:', error);
-    }
-  });
 });
 
 server.listen(PORT, '0.0.0.0', () => {
