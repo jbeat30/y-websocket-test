@@ -34,10 +34,12 @@ wss.on('connection', (ws, req) => {
     rooms.set(roomName, new Set());
   }
 
-  rooms.get(roomName)?.add(ws);
+  const room = rooms.get(roomName);
+  room?.add(ws);
 
-  // 기존 삭제 예약된 타이머가 있다면 제거
+  // 기존 삭제 예약된 타이머가 있으면 제거
   if (roomTimeouts.has(roomName)) {
+    console.log(`⏳ 삭제 예약 취소됨: ${roomName}`);
     clearTimeout(roomTimeouts.get(roomName));
     roomTimeouts.delete(roomName);
   }
@@ -46,18 +48,19 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     console.log(`❌ 클라이언트가 방에서 나감: ${roomName}`);
-    const room = rooms.get(roomName);
     room?.delete(ws);
 
-    if (room && room.size === 0) {
+    // 🔥 방이 비었는지 다시 확인 후 삭제 예약
+    if (room?.size === 0) {
       console.log(`⏳ 5초 후 방 삭제 확인: ${roomName}`);
 
-      // 5초 후에도 비어 있으면 방 삭제
       const timeout = setTimeout(() => {
         if (rooms.get(roomName)?.size === 0) {
           console.log(`🗑️ 방 삭제됨: ${roomName}`);
           rooms.delete(roomName);
           roomTimeouts.delete(roomName);
+        } else {
+          console.log(`⚠️ 방 삭제 취소됨 (새로운 접속자 감지됨): ${roomName}`);
         }
       }, 5000);
 
