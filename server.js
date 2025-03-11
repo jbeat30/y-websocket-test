@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import http from 'http';
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer } from 'ws';
 import { setupWSConnection } from 'y-websocket/bin/utils';
 
 const PORT = process.env.PORT || 8080;
