@@ -52,7 +52,7 @@ wss.on('connection', (ws, req) => {
 
     // 🔥 방이 비었는지 다시 확인 후 삭제 예약
     if (room?.size === 0) {
-      console.log(`⏳ 5초 후 방 삭제 확인: ${roomName}`);
+      console.log(`⏳ 0.3초 후 방 삭제 확인: ${roomName}`);
 
       const timeout = setTimeout(() => {
         if (rooms.get(roomName)?.size === 0) {
@@ -62,7 +62,7 @@ wss.on('connection', (ws, req) => {
         } else {
           console.log(`⚠️ 방 삭제 취소됨 (새로운 접속자 감지됨): ${roomName}`);
         }
-      }, 5000);
+      }, 300);
 
       roomTimeouts.set(roomName, timeout);
     }
