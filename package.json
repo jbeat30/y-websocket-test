@@ -1,7 +1,6 @@
 {
   "name": "yjs-websocket-server",
   "version": "1.0.0",
-  "type": "module",
   "description": "",
   "scripts": {
     "start": "node server.js"
