@@ -1,74 +1,54 @@
-import 'dotenv/config';
-import http from 'http';
-import { WebSocketServer } from 'ws';
-import { setupWSConnection } from 'y-websocket/bin/utils';
+import { createServer } from 'http';
+import express from 'express';
+import { Server } from 'socket.io';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import wowwowNamespace from './namespaces/wowwow/index.js';
 
-const PORT = process.env.PORT || 8080;
-const rooms = new Map(); // Map 사용
-const roomTimeouts = new Map(); // 방 삭제 타이머 저장
+// 현재 파일의 디렉토리 경로 설정
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const server = http.createServer((req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+// 환경 변수 로드 - 단일 .env 파일 사용
+const envFile = join(__dirname, '.env'); // .env 파일 경로
+const configResult = dotenv.config({ path: envFile });
 
-  if (req.method === 'OPTIONS') {
-    res.writeHead(200);
-    res.end();
-    return;
-  }
+// 환경 변수 로드 결과 확인
+if (configResult.error) {
+  console.error('Error loading .env file:', configResult.error);
+} else {
+  console.log('Environment variables loaded successfully:', configResult.parsed);
+}
 
-  res.writeHead(200);
-  res.end();
+// Express 서버 생성
+const app = express();
+const server = createServer(app);
+
+// Socket.IO 서버 생성
+const io = new Server(server, {
+  path: '/ws', // 기본 WebSocket 요청 경로
+  transports: ['websocket', 'polling'], // WebSocket 및 폴링 전송 방식 허용
+  cors: {
+    origin: '*', // 모든 도메인 허용
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'OPTIONS'], // 요청 메서드 허용
+    allowedHeaders: ['Content-Type', 'X-Requested-With', 'Authorization'], // 요청 헤더 허용
+    credentials: true, // 쿠키 전달을 허용
+  },
+  allowEIO3: true, // Socket.IO 3버전 호환성
 });
 
-const wss = new WebSocketServer({ server });
+// 네임스페이스 설정
+const wowwow = io.of(process.env.WOWWOW_NAMESPACE_PATH || '/default-namespace');
+wowwowNamespace(wowwow);
 
-wss.on('connection', (ws, req) => {
-  const roomName = req.url;
-
-  console.log('✅ 클라이언트 연결됨:', req.socket.remoteAddress);
-  console.log('🔗 연결된 방 이름:', roomName);
-
-  if (!rooms.has(roomName)) {
-    rooms.set(roomName, new Set());
-  }
-
-  const room = rooms.get(roomName);
-  room?.add(ws);
-
-  // 기존 삭제 예약된 타이머가 있으면 제거
-  if (roomTimeouts.has(roomName)) {
-    console.log(`⏳ 삭제 예약 취소됨: ${roomName}`);
-    clearTimeout(roomTimeouts.get(roomName));
-    roomTimeouts.delete(roomName);
-  }
-
-  setupWSConnection(ws, req);
-
-  ws.on('close', () => {
-    console.log(`❌ 클라이언트가 방에서 나감: ${roomName}`);
-    room?.delete(ws);
-
-    // 🔥 방이 비었는지 다시 확인 후 삭제 예약
-    if (room?.size === 0) {
-      console.log(`⏳ 5초 후 방 삭제 확인: ${roomName}`);
-
-      const timeout = setTimeout(() => {
-        if (rooms.get(roomName)?.size === 0) {
-          console.log(`🗑️ 방 삭제됨: ${roomName}`);
-          rooms.delete(roomName);
-          roomTimeouts.delete(roomName);
-        } else {
-          console.log(`⚠️ 방 삭제 취소됨 (새로운 접속자 감지됨): ${roomName}`);
-        }
-      }, 3000);
-
-      roomTimeouts.set(roomName, timeout);
-    }
-  });
+// 서버 상태 확인 라우트
+app.get('/healthCheck/_check', (req, res) => {
+  res.status(200).json({ status: 'OK' });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Yjs WebSocket 서버 실행 중 PORT:${PORT}`);
+// 서버 실행
+const PORT = process.env.PORT || 8081;
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

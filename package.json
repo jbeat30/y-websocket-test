@@ -1,15 +1,24 @@
 {
   "name": "yjs-websocket-server",
+  "type": "module",
   "version": "1.0.0",
-  "description": "",
-  "scripts": {
-    "start": "node server.js"
+  "main": "server.js",
+  "engines": {
+    "node": ">=23.4.0",
+    "npm": ">=11.0.0"
   },
-  "keywords": [],
-  "author": "",
+  "scripts": {
+    "start": "node server.js",
+    "start:cjs": "node single/cjs-server.js",
+    "start:esm": "node single/esm-server.js",
+    "start:io": "node single/socket-server.js"
+  },
+  "author": "jbeat",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
     "socket.io": "^4.8.1",
     "ws": "^8.18.1",
     "y-websocket": "^2.1.0"
