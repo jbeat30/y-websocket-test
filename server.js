@@ -6,22 +6,21 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import wowwowNamespace from './namespaces/wowwow/index.js';
 
-// 현재 파일의 디렉토리 경로 설정
+// 현재 파일의 디렉토리 경로 구하기
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 환경 변수 로드 - 단일 .env 파일 사용
-const envFile = join(__dirname, '.env'); // .env 파일 경로
-const configResult = dotenv.config({ path: envFile });
+// 환경 변수 로드 (.env 파일 사용)
+const envPath = join(__dirname, '.env');
+const configResult = dotenv.config({ path: envPath });
 
-// 환경 변수 로드 결과 확인
 if (configResult.error) {
-  console.error('Error loading .env file:', configResult.error);
+  console.error('❌ .env 파일 로드 실패:', configResult.error);
 } else {
-  console.log('Environment variables loaded successfully:', configResult.parsed);
+  console.log('✅ 환경 변수 로드 성공:', configResult.parsed);
 }
 
-// Express 서버 생성
+// Express 앱 및 HTTP 서버 생성
 const app = express();
 const server = createServer(app);
 
@@ -38,8 +37,9 @@ const io = new Server(server, {
   allowEIO3: true, // Socket.IO 3버전 호환성
 });
 
-// 네임스페이스 설정
-const wowwow = io.of(process.env.WOWWOW_NAMESPACE_PATH || '/default-namespace');
+// 네임스페이스 등록
+const namespacePath = process.env.WOWWOW_NAMESPACE_PATH || '/default-namespace';
+const wowwow = io.of(namespacePath);
 wowwowNamespace(wowwow);
 
 // 서버 상태 확인 라우트
